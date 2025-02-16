@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego de Matemáticas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #eef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .game-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            width: 300px;
+        }
+        .question {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .answers {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .answer-box {
+            background-color: #87CEEB;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 60px;
+            text-align: center;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+        .answer-box:hover {
+            background-color: #4682B4;
+            color: white;
+        }
+        .timer {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: red;
+        }
+        .score {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="score">Puntaje: <span id="score">0</span></div>
+        <div class="timer">Tiempo restante: <span id="time">10</span> segundos</div>
+        <div class="question" id="question"></div>
+        <div class="answers" id="answers"></div>
+    </div>
+    
+    <audio id="correct-sound" src="correct.mp3"></audio>
+    <audio id="wrong-sound" src="wrong.mp3"></audio>
+    <audio id="timeout-sound" src="timeout.mp3"></audio>
+    
+    <script>
+        let timer = 10;
+        let interval;
+        let score = 0;
+
+        function startGame() {
+            let num1 = Math.floor(Math.random() * 10) + 1;
+            let num2 = Math.floor(Math.random() * 10) + 1;
+            let operators = ['+', '-', '*', '/'];
+            let operator = operators[Math.floor(Math.random() * operators.length)];
+            let correctAnswer;
+
+            if (operator === '+') {
+                correctAnswer = num1 + num2;
+            } else if (operator === '-') {
+                correctAnswer = num1 - num2;
+            } else if (operator === '*') {
+                correctAnswer = num1 * num2;
+            } else {
+                while (num1 % num2 !== 0) {
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                }
+                correctAnswer = num1 / num2;
+            }
+            
+            document.getElementById("question").innerText = `${num1} ${operator} ${num2} = ?`;
+            
+            let answers = [correctAnswer];
+            while (answers.length < 4) {
+                let wrongAnswer = Math.floor(Math.random() * 20) + 1;
+                if (!answers.includes(wrongAnswer)) {
+                    answers.push(wrongAnswer);
+                }
+            }
+            
+            answers.sort(() => Math.random() - 0.5);
+            let answerContainer = document.getElementById("answers");
+            answerContainer.innerHTML = "";
+            
+            answers.forEach(answer => {
+                let box = document.createElement("div");
+                box.classList.add("answer-box");
+                box.innerText = answer;
+                box.onclick = function() {
+                    if (answer == correctAnswer) {
+                        document.getElementById("correct-sound").play();
+                        score++;
+                        document.getElementById("score").innerText = score;
+                        resetTimer();
+                        startGame();
+                    } else {
+                        document.getElementById("wrong-sound").play();
+                        alert("Incorrecto, perdiste. Puntaje reiniciado.");
+                        score = 0;
+                        document.getElementById("score").innerText = score;
+                        resetTimer();
+                        startGame();
+                    }
+                };
+                answerContainer.appendChild(box);
+            });
+            
+            resetTimer();
+        }
+
+        function resetTimer() {
+            clearInterval(interval);
+            timer = 10;
+            document.getElementById("time").innerText = timer;
+            interval = setInterval(() => {
+                timer--;
+                document.getElementById("time").innerText = timer;
+                if (timer === 0) {
+                    document.getElementById("timeout-sound").play();
+                    alert("¡Tiempo agotado! Puntaje reiniciado.");
+                    score = 0;
+                    document.getElementById("score").innerText = score;
+                    clearInterval(interval);
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
